@@ -33,6 +33,77 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+    // database
+    const database = client.db("shopO");
+
+    // collection one
+    const productsCollection = database.collection("products");
+
+    // products api
+    app.get("/products", async (req, res) => {
+      const { search, page, size, sort, priceRange, category, brand } =
+        req?.query;
+
+      const perPageProducts = parseInt(size);
+      const skipProducts = parseInt(page) * parseInt(size);
+
+      const categorys = JSON.parse(category);
+      const brands = JSON.parse(brand);
+
+      const query = {};
+
+      // query product with search text
+      if (search) {
+        query.title = { $regex: search, $options: "i" };
+      }
+
+      // query product with price range
+      if (priceRange) {
+        const [min, max] = priceRange.split("-").map((value) => Number(value));
+
+        query.price = { $gte: min, $lte: max };
+      }
+
+      // query product with categorys
+      if (categorys?.length) {
+        query.category = { $in: categorys };
+      }
+
+      // query product with brands
+      if (brands?.length) {
+        query.brand = { $in: brands };
+      }
+
+      // product sort
+      const sortOptions = {};
+
+      if (sort) {
+        if (sort === "Default") {
+        }
+        if (sort === "Newest") {
+          sortOptions.date = -1;
+        }
+        if (sort === "Oldest") {
+          sortOptions.date = 1;
+        }
+        if (sort === "Price: Low to High") {
+          sortOptions.price = 1;
+        }
+        if (sort === "Price: High to Low") {
+          sortOptions.price = -1;
+        }
+      }
+
+      const result = await productsCollection
+        .find(query)
+        .sort(sortOptions)
+        .skip(skipProducts)
+        .limit(perPageProducts)
+        .toArray();
+
+      return res.send(result);
+    });
+
     // ..........
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
