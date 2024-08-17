@@ -47,8 +47,8 @@ async function run() {
       const perPageProducts = parseInt(size);
       const skipProducts = parseInt(page) * parseInt(size);
 
-      const categorys = JSON.parse(category);
-      const brands = JSON.parse(brand);
+      const categorys = JSON.parse(category || []);
+      const brands = JSON.parse(brand || []);
 
       const query = {};
 
@@ -94,6 +94,10 @@ async function run() {
         }
       }
 
+      // count all products by query
+      const totalProcutsNumber = await productsCollection.countDocuments(query);
+
+      // find all products by bottom conditon
       const result = await productsCollection
         .find(query)
         .sort(sortOptions)
@@ -101,7 +105,7 @@ async function run() {
         .limit(perPageProducts)
         .toArray();
 
-      return res.send(result);
+      return res.send({ result, totalProcutsNumber });
     });
 
     // ..........
