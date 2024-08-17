@@ -131,5 +131,5 @@ app.get("/", (req, res) => {
 
 // start the server
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  console.log(`Server is running on port: ${port}`);
 });
